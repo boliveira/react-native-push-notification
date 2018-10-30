@@ -13,7 +13,7 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
-import com.google.android.gms.gcm.GcmListenerService; 
+import com.google.android.gms.gcm.GcmListenerService;
 
 import org.json.JSONObject;
 
@@ -25,7 +25,7 @@ import static com.dieam.reactnativepushnotification.modules.RNPushNotification.L
 public class RNPushNotificationListenerServiceGcm extends GcmListenerService {
 
     @Override
-    public void onMessageReceived(String from, final Bundle bundle) { 
+    public void onMessageReceived(String from, final Bundle bundle) {
         JSONObject data = getPushData(bundle.getString("data"));
         // Copy `twi_body` to `message` to support Twilio
         if (bundle.containsKey("twi_body")) {
@@ -54,25 +54,41 @@ public class RNPushNotificationListenerServiceGcm extends GcmListenerService {
 
         Log.v(LOG_TAG, "onMessageReceived: " + bundle);
 
-        // We need to run this on the main thread, as the React code assumes that is true.
-        // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
+        // We need to run this on the main thread, as the React code assumes that is
+        // true.
+        // Namely, DevServerHelper constructs a Handler() without a Looper, which
+        // triggers:
         // "Can't create handler inside thread that has not called Looper.prepare()"
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             public void run() {
                 // Construct and load our normal React JS code bundle
-                ReactInstanceManager mReactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
+                ReactInstanceManager mReactInstanceManager;
+
+                Application application = getApplication();
+
+                if (application instanceof ReactApplication) {
+                    mReactInstanceManager = ((ReactApplication) application).getReactNativeHost()
+                            .getReactInstanceManager();
+                } else if (application instanceof ReactInstanceManagerProvider) {
+                    mReactInstanceManager = ((ReactInstanceManagerProvider) application).getReactInstanceManager();
+                } else {
+                    throw new TypeMismatchException(
+                            "Application doesn't implement ReactApplication nor ReactInstanceManagerProvider interfaces");
+                }
+
                 ReactContext context = mReactInstanceManager.getCurrentReactContext();
                 // If it's constructed, send a notification
                 if (context != null) {
                     handleRemotePushNotification((ReactApplicationContext) context, bundle);
                 } else {
                     // Otherwise wait for construction, then send the notification
-                    mReactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
-                        public void onReactContextInitialized(ReactContext context) {
-                            handleRemotePushNotification((ReactApplicationContext) context, bundle);
-                        }
-                    });
+                    mReactInstanceManager
+                            .addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
+                                public void onReactContextInitialized(ReactContext context) {
+                                    handleRemotePushNotification((ReactApplicationContext) context, bundle);
+                                }
+                            });
                     if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
                         // Construct it in the background
                         mReactInstanceManager.createReactContextInBackground();
@@ -92,7 +108,8 @@ public class RNPushNotificationListenerServiceGcm extends GcmListenerService {
 
     private void handleRemotePushNotification(ReactApplicationContext context, Bundle bundle) {
 
-        // If notification ID is not provided by the user for push notification, generate one at random
+        // If notification ID is not provided by the user for push notification,
+        // generate one at random
         if (bundle.getString("id") == null) {
             Random randomNumberGenerator = new Random(System.currentTimeMillis());
             bundle.putString("id", String.valueOf(randomNumberGenerator.nextInt()));
