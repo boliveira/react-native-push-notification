@@ -73,7 +73,7 @@ public class RNPushNotificationListenerServiceGcm extends GcmListenerService {
                 } else if (application instanceof ReactInstanceManagerProvider) {
                     mReactInstanceManager = ((ReactInstanceManagerProvider) application).getReactInstanceManager();
                 } else {
-                    throw new TypeMismatchException(
+                    throw new ClassCastException(
                             "Application doesn't implement ReactApplication nor ReactInstanceManagerProvider interfaces");
                 }
 

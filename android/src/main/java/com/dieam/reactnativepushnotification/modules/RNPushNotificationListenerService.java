@@ -3,7 +3,6 @@ package com.dieam.reactnativepushnotification.modules;
 import java.util.Map;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.sun.corba.se.impl.io.TypeMismatchException;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -92,7 +91,7 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
                 } else if (application instanceof ReactInstanceManagerProvider) {
                     mReactInstanceManager = ((ReactInstanceManagerProvider) application).getReactInstanceManager();
                 } else {
-                    throw new TypeMismatchException(
+                    throw new ClassCastException(
                             "Application doesn't implement ReactApplication nor ReactInstanceManagerProvider interfaces");
                 }
 
