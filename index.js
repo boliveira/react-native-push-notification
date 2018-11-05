@@ -281,6 +281,8 @@ Notifications._requestPermissions = function() {
         .then(this._onPermissionResult.bind(this))
         .catch(this._onPermissionResult.bind(this));
     }
+  } else if (typeof this.senderID !== "undefined") {
+    return this.callNative("requestPermissions", [this.senderID]);
   }
 };
 

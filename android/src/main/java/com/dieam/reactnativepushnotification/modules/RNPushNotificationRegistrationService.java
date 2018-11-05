@@ -2,12 +2,10 @@ package com.dieam.reactnativepushnotification.modules;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
-
-import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 public class RNPushNotificationRegistrationService extends IntentService {
 
@@ -19,15 +17,15 @@ public class RNPushNotificationRegistrationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        try {
-            String SenderID = intent.getStringExtra("senderID");
-            InstanceID instanceID = InstanceID.getInstance(this);
-            String token = instanceID.getToken(SenderID,
-                    GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-            sendRegistrationToken(token);
-        } catch (Exception e) {
-            Log.e(LOG_TAG, TAG + " failed to process intent " + intent, e);
-        }
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+                    @Override
+                    public void onSuccess(InstanceIdResult instanceIdResult) {
+                        String token = instanceIdResult.getToken();
+                        sendRegistrationToken(token);
+                    }
+                });
+
     }
 
     private void sendRegistrationToken(String token) {
