@@ -7,6 +7,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -114,6 +115,19 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
                 }
             }
         });
+    }
+
+    @Override
+    public void onNewToken(String token) {
+        super.onNewToken(token);
+        Log.e("NEW_TOKEN", token);
+        sendRegistrationToken(token);
+    }
+
+    private void sendRegistrationToken(String token) {
+        Intent intent = new Intent(this.getPackageName() + ".RNPushNotificationRegisteredToken");
+        intent.putExtra("token", token);
+        sendBroadcast(intent);
     }
 
     private JSONObject getPushData(String dataString) {
